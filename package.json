@@ -24,6 +24,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-tools": "^9.0.1",
     "graphql-upload": "^16.0.2",
+    "lucide-react": "^0.487.0",
     "micro-cors": "^0.1.1",
     "mongodb": "^6.8.0",
     "mongoose": "^8.13.2",

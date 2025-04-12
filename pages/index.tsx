@@ -8,9 +8,8 @@ import {
   RedirectToSignIn,
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
-// GraphQL queries remain unchanged
 const GET_USER_ACTIVE_TASKS = gql`
   query GetUserActiveTasks($userId: String!) {
     getUserActiveTasks(userId: $userId) {
@@ -66,92 +65,59 @@ export default function Home() {
     skip: !userId,
   });
 
-  if (!isLoaded) return <p className="text-center text-gray-500">Loading...</p>;
+  if (!isLoaded || activeLoading || doneLoading) return <p>Loading...</p>;
   if (!user) return <RedirectToSignIn />;
-  if (activeLoading || doneLoading)
-    return <p className="text-center text-gray-500">Loading...</p>;
   if (activeError || doneError)
-    return (
-      <p className="text-center text-red-500">
-        Error: {activeError?.message || doneError?.message}
-      </p>
-    );
+    return <p>Error: {activeError?.message || doneError?.message}</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-5xl mx-auto p-6 sm:p-8">
-        <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
-          <h1 className="text-2xl font-extrabold text-gray-800 tracking-tight">
-            Task Dashboard
-          </h1>
-          <div className="flex gap-4 items-center">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-3xl mx-auto px-4 py-6">
+        {/* Header */}
+        <header className="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
+          <h1 className="text-xl font-semibold text-gray-800">Tasks</h1>
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.push(`/add-task?userId=${userId}`)}
-              className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 shadow-sm"
+              className="bg-blue-500 text-white px-4 py-1 text-sm font-medium hover:bg-blue-600"
             >
-              + Add Task
+              Add Task
             </button>
             <SignedIn>
               <UserButton />
             </SignedIn>
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 shadow-sm">
+                <button className="bg-blue-500 text-white px-4 py-1 text-sm font-medium hover:bg-blue-600">
                   Sign In
                 </button>
               </SignInButton>
             </SignedOut>
           </div>
-        </div>
-        <p className="text-lg text-gray-600 mb-8">
-          Welcome, <span className="font-semibold">{user.firstName}</span>!
-        </p>
+        </header>
 
-        {/* Active Tasks Section */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+        {/* Welcome */}
+        <p className="text-base text-gray-600 mb-6">Hello, {user.firstName}!</p>
+
+        {/* Active Tasks */}
+        <section className="mb-8">
+          <h2 className="text-lg font-medium text-gray-800 mb-3">
             Active Tasks
           </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {activeData?.getUserActiveTasks?.length === 0 ? (
-              <p className="text-gray-500 col-span-full">
-                No active tasks found.
-              </p>
-            ) : (
-              activeData?.getUserActiveTasks?.map((task: any) => (
-                <div
-                  key={task._id}
-                  className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200"
-                >
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+          {activeData?.getUserActiveTasks?.length === 0 ? (
+            <p className="text-gray-500">No active tasks.</p>
+          ) : (
+            <ul className="space-y-3">
+              {activeData?.getUserActiveTasks?.map((task: any) => (
+                <li key={task._id} className="border border-gray-200 p-4">
+                  <h3 className="text-base font-medium text-gray-800">
                     {task.taskName}
                   </h3>
-                  <p className="text-gray-600 mb-3 line-clamp-2">
-                    {task.description}
-                  </p>
-                  <div className="text-sm text-gray-500 space-y-1">
-                    <p>
-                      <span className="font-medium">Priority:</span>{" "}
-                      <span
-                        className={`${
-                          task.priority === "High"
-                            ? "text-red-500"
-                            : task.priority === "Medium"
-                            ? "text-yellow-500"
-                            : "text-green-500"
-                        } font-medium`}
-                      >
-                        {task.priority}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-medium">Status:</span>{" "}
-                      {task.isDone ? "Done" : "Not Done"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Tags:</span>{" "}
-                      {task.tags?.join(", ") || "None"}
-                    </p>
+                  <p className="text-sm text-gray-600">{task.description}</p>
+                  <div className="text-sm text-gray-500 mt-2">
+                    <p>Priority: {task.priority}</p>
+                    <p>Status: {task.isDone ? "Done" : "Not Done"}</p>
+                    <p>Tags: {task.tags?.join(", ") || "None"}</p>
                   </div>
                   <button
                     onClick={() =>
@@ -159,78 +125,42 @@ export default function Home() {
                         `/update-task?taskId=${task._id}&userId=${userId}`
                       )
                     }
-                    className="mt-4 text-sm text-indigo-600 font-medium hover:text-indigo-800 transition-colors duration-150"
+                    className="mt-2 text-sm text-blue-500 hover:text-blue-700"
                   >
-                    ✏️ Edit
+                    Edit
                   </button>
-                </div>
-              ))
-            )}
-          </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
-        {/* Completed Tasks Section */}
+        {/* Completed Tasks */}
         <section>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+          <h2 className="text-lg font-medium text-gray-800 mb-3">
             Completed Tasks
           </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {doneData?.getUserDoneTasks?.length === 0 ? (
-              <p className="text-gray-500 col-span-full">
-                No completed tasks found.
-              </p>
-            ) : (
-              doneData?.getUserDoneTasks?.map((task: any) => (
-                <div
-                  key={task._id}
-                  className="bg-white p-6 rounded-xl shadow-md opacity-80"
-                >
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+          {doneData?.getUserDoneTasks?.length === 0 ? (
+            <p className="text-gray-500">No completed tasks.</p>
+          ) : (
+            <ul className="space-y-3">
+              {doneData?.getUserDoneTasks?.map((task: any) => (
+                <li key={task._id} className="border border-gray-200 p-4">
+                  <h3 className="text-base font-medium text-gray-800">
                     {task.taskName}
                   </h3>
-                  <p className="text-gray-600 mb-3 line-clamp-2">
-                    {task.description}
-                  </p>
-                  <div className="text-sm text-gray-500 space-y-1">
-                    <p>
-                      <span className="font-medium">Priority:</span>{" "}
-                      <span
-                        className={`${
-                          task.priority === "High"
-                            ? "text-red-500"
-                            : task.priority === "Medium"
-                            ? "text-yellow-500"
-                            : "text-green-500"
-                        } font-medium`}
-                      >
-                        {task.priority}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-medium">Status:</span>{" "}
-                      {task.isDone ? "Done" : "Not Done"}
-                    </p>
-                    <p>
-                      <span className="font-medium">Tags:</span>{" "}
-                      {task.tags?.join(", ") || "None"}
-                    </p>
+                  <p className="text-sm text-gray-600">{task.description}</p>
+                  <div className="text-sm text-gray-500 mt-2">
+                    <p>Priority: {task.priority}</p>
+                    <p>Status: {task.isDone ? "Done" : "Not Done"}</p>
+                    <p>Tags: {task.tags?.join(", ") || "None"}</p>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
-
-      {/* Custom CSS for additional styling */}
-      <style jsx>{`
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
     </div>
   );
 }
