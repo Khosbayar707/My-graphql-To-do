@@ -73,7 +73,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Header */}
         <header className="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
           <h1 className="text-xl font-semibold text-gray-800">Tasks</h1>
           <div className="flex items-center gap-3">
@@ -96,10 +95,8 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Welcome */}
         <p className="text-base text-gray-600 mb-6">Hello, {user.firstName}!</p>
 
-        {/* Active Tasks */}
         <section className="mb-8">
           <h2 className="text-lg font-medium text-gray-800 mb-3">
             Active Tasks
@@ -135,7 +132,6 @@ export default function Home() {
           )}
         </section>
 
-        {/* Completed Tasks */}
         <section>
           <h2 className="text-lg font-medium text-gray-800 mb-3">
             Completed Tasks
