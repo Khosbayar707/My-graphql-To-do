@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useMutation } from "@apollo/client";
 import {
   useUser,
   SignedIn,
@@ -36,6 +36,14 @@ const GET_USER_DONE_TASKS = gql`
   }
 `;
 
+const DELETE_TASK = gql`
+  mutation DeleteTask($taskId: ID!, $userId: String!) {
+    deleteTask(taskId: $taskId, userId: $userId) {
+      _id
+    }
+  }
+`;
+
 export default function Home() {
   const { user, isLoaded } = useUser();
   const [userId, setUserId] = useState<string | null>(null);
@@ -63,6 +71,13 @@ export default function Home() {
   } = useQuery(GET_USER_DONE_TASKS, {
     variables: { userId: userId || "" },
     skip: !userId,
+  });
+
+  const [deleteTask] = useMutation(DELETE_TASK, {
+    refetchQueries: [
+      { query: GET_USER_ACTIVE_TASKS, variables: { userId } },
+      { query: GET_USER_DONE_TASKS, variables: { userId } },
+    ],
   });
 
   if (!isLoaded || activeLoading || doneLoading) return <p>Loading...</p>;
@@ -125,6 +140,24 @@ export default function Home() {
                     className="mt-2 text-sm text-blue-500 hover:text-blue-700"
                   >
                     Edit
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (
+                        confirm("Are you sure you want to delete this task?")
+                      ) {
+                        try {
+                          await deleteTask({
+                            variables: { taskId: task._id, userId },
+                          });
+                        } catch (err: any) {
+                          alert(err.message);
+                        }
+                      }
+                    }}
+                    className="ml-4 mt-2 text-sm text-red-500 hover:text-red-700"
+                  >
+                    Delete
                   </button>
                 </li>
               ))}

@@ -36,5 +36,7 @@ export const typeDefs = gql`
       tags: [String]
       userId: String!
     ): Task
+
+    deleteTask(taskId: ID!, userId: String!): Task
   }
 `;
