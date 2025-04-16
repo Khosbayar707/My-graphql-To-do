@@ -37,6 +37,8 @@ export const typeDefs = gql`
       userId: String!
     ): Task
 
+    updateStatus(taskId: ID!, userId: String, isDone: Boolean): Task
+
     deleteTask(taskId: ID!, userId: String!): Task
   }
 `;
